@@ -2420,7 +2420,7 @@ std::string ast_to_string(ast::Program* node) {
     return stream.str();
 }
 
-SCENARIO("SympySolver visitor", "[sympy]") {
+SCENARIO("SympySolver visitor: cnexp or euler", "[sympy][cnexp][euler]") {
     GIVEN("Derivative block without ODE, solver method cnexp") {
         std::string nmodl_text = R"(
             BREAKPOINT  {
@@ -2543,7 +2543,10 @@ SCENARIO("SympySolver visitor", "[sympy]") {
             REQUIRE(AST_string == ast_to_string(ast.get()));
         }
     }
-    GIVEN("Derivative block with cnexp solver method and conditional block") {
+}
+
+SCENARIO("SympySolver visitor: derivimplicit or sparse", "[sympy][derivimplicit][sparse]") {
+    GIVEN("Derivative block with derivimplicit solver method and conditional block") {
         std::string nmodl_text = R"(
             STATE {
                 m
@@ -2560,18 +2563,21 @@ SCENARIO("SympySolver visitor", "[sympy]") {
         )";
         std::string expected_result = R"(
             DERIVATIVE states {
-                LOCAL old_m
-                IF (mInf == 1) {
-                    mInf = mInf+1
-                }
-                old_m = m
-                {
+                EIGEN_NEWTON_SOLVE{
+                    LOCAL old_m
+                }{
+                    IF (mInf == 1) {
+                        mInf = mInf+1
+                    }
+                    old_m = m
+                }{
                     X[0] = m
                 }{
                     F[0] = (-dt*(X[0]-mInf)+mTau*(-X[0]+old_m))/mTau
                     J[0] = -(dt+mTau)/mTau
                 }{
                     m = X[0]
+                }{
                 }
             })";
         THEN("SympySolver correctly inserts ode to block") {
@@ -2581,6 +2587,7 @@ SCENARIO("SympySolver visitor", "[sympy]") {
             REQUIRE(result[0] == reindent_text(expected_result));
         }
     }
+
     GIVEN("Derivative block of coupled & linear ODES, solver method sparse") {
         std::string nmodl_text = R"(
             STATE {
@@ -2681,12 +2688,14 @@ SCENARIO("SympySolver visitor", "[sympy]") {
         /// new derivative block with EigenNewtonSolverBlock node
         std::string expected_result = R"(
             DERIVATIVE states {
-                LOCAL old_m, old_h, old_n
-                rates(v)
-                old_m = m
-                old_h = h
-                old_n = n
-                {
+                EIGEN_NEWTON_SOLVE{
+                    LOCAL old_m, old_h, old_n
+                }{
+                    rates(v)
+                    old_m = m
+                    old_h = h
+                    old_n = n
+                }{
                     X[0] = m
                     X[1] = h
                     X[2] = n
@@ -2707,6 +2716,7 @@ SCENARIO("SympySolver visitor", "[sympy]") {
                     m = X[0]
                     h = X[1]
                     n = X[2]
+                }{
                 }
             })";
 
@@ -2740,10 +2750,12 @@ SCENARIO("SympySolver visitor", "[sympy]") {
         /// EigenNewtonSolverBlock in each derivative block
         std::string expected_result_0 = R"(
             DERIVATIVE states1 {
-                LOCAL old_m, old_h
-                old_m = m
-                old_h = h
-                {
+                EIGEN_NEWTON_SOLVE{
+                    LOCAL old_m, old_h
+                }{
+                    old_m = m
+                    old_h = h
+                }{
                     X[0] = m
                     X[1] = h
                 }{
@@ -2756,14 +2768,17 @@ SCENARIO("SympySolver visitor", "[sympy]") {
                 }{
                     m = X[0]
                     h = X[1]
+                }{
                 }
             })";
         std::string expected_result_1 = R"(
             DERIVATIVE states2 {
-                LOCAL old_h, old_m
-                old_h = h
-                old_m = m
-                {
+                EIGEN_NEWTON_SOLVE{
+                    LOCAL old_h, old_m
+                }{
+                    old_h = h
+                    old_m = m
+                }{
                     X[0] = m
                     X[1] = h
                 }{
@@ -2776,6 +2791,7 @@ SCENARIO("SympySolver visitor", "[sympy]") {
                 }{
                     m = X[0]
                     h = X[1]
+                }{
                 }
             })";
 
@@ -4148,26 +4164,40 @@ SCENARIO("LINEAR solve block (SympySolver Visitor)", "[sympy][linear]") {
             })";
         std::string expected_text = R"(
             LINEAR lin {
-                F[0] = 0
-                F[1] = 5.343*a
-                F[2] = a-0.842*pow(b, 2)
-                F[3] = -1.43543/c
-                J[0] = -1
-                J[4] = 0
-                J[8] = -2
-                J[12] = -0.3125
-                J[1] = 0
-                J[5] = -1
-                J[9] = -4*c
-                J[13] = 0
-                J[2] = 0
-                J[6] = -1/b
-                J[10] = 1
-                J[14] = -1
-                J[3] = 0
-                J[7] = -1
-                J[11] = -1.3
-                J[15] = 0.1/(pow(a, 2)*b)
+                EIGEN_LINEAR_SOLVE{
+                }{
+                }{
+                    X[0] = w
+                    X[1] = x
+                    X[2] = y
+                    X[3] = z
+                    F[0] = 0
+                    F[1] = 5.343*a
+                    F[2] = a-0.842*pow(b, 2)
+                    F[3] = -1.43543/c
+                    J[0] = -1
+                    J[4] = 0
+                    J[8] = -2
+                    J[12] = -0.3125
+                    J[1] = 0
+                    J[5] = -1
+                    J[9] = -4*c
+                    J[13] = 0
+                    J[2] = 0
+                    J[6] = -1/b
+                    J[10] = 1
+                    J[14] = -1
+                    J[3] = 0
+                    J[7] = -1
+                    J[11] = -1.3
+                    J[15] = 0.1/(pow(a, 2)*b)
+                }{
+                    w = X[0]
+                    x = X[1]
+                    y = X[2]
+                    z = X[3]
+                }{
+                }
             })";
         THEN("return matrix system to solve") {
             auto result = run_sympy_solver_visitor(nmodl_text, false, false,
@@ -4196,162 +4226,192 @@ SCENARIO("LINEAR solve block (SympySolver Visitor)", "[sympy][linear]") {
             })";
         std::string expected_text = R"(
             LINEAR seqinitial {
-                F[0] = 0
-                F[1] = 0
-                F[2] = 0
-                F[3] = 0
-                F[4] = 0
-                F[5] = 0
-                F[6] = 0
-                F[7] = 0
-                F[8] = 0
-                F[9] = 0
-                F[10] = 0
-                F[11] = -1
-                J[0] = f01+fi1
-                J[12] = -b01
-                J[24] = 0
-                J[36] = 0
-                J[48] = 0
-                J[60] = -bi1
-                J[72] = 0
-                J[84] = 0
-                J[96] = 0
-                J[108] = 0
-                J[120] = 0
-                J[132] = 0
-                J[1] = -f01
-                J[13] = b01+f02+fi2
-                J[25] = -b02
-                J[37] = 0
-                J[49] = 0
-                J[61] = 0
-                J[73] = -bi2
-                J[85] = 0
-                J[97] = 0
-                J[109] = 0
-                J[121] = 0
-                J[133] = 0
-                J[2] = 0
-                J[14] = -f02
-                J[26] = b02+f03+fi3
-                J[38] = -b03
-                J[50] = 0
-                J[62] = 0
-                J[74] = 0
-                J[86] = -bi3
-                J[98] = 0
-                J[110] = 0
-                J[122] = 0
-                J[134] = 0
-                J[3] = 0
-                J[15] = 0
-                J[27] = -f03
-                J[39] = b03+f04+fi4
-                J[51] = -b04
-                J[63] = 0
-                J[75] = 0
-                J[87] = 0
-                J[99] = -bi4
-                J[111] = 0
-                J[123] = 0
-                J[135] = 0
-                J[4] = 0
-                J[16] = 0
-                J[28] = 0
-                J[40] = -f04
-                J[52] = b04+f0O+fi5
-                J[64] = 0
-                J[76] = 0
-                J[88] = 0
-                J[100] = 0
-                J[112] = -bi5
-                J[124] = 0
-                J[136] = -b0O
-                J[5] = 0
-                J[17] = 0
-                J[29] = 0
-                J[41] = 0
-                J[53] = -f0O
-                J[65] = 0
-                J[77] = 0
-                J[89] = 0
-                J[101] = 0
-                J[113] = 0
-                J[125] = -bin
-                J[137] = b0O+fin
-                J[6] = -fi1
-                J[18] = 0
-                J[30] = 0
-                J[42] = 0
-                J[54] = 0
-                J[66] = bi1+f11
-                J[78] = -b11
-                J[90] = 0
-                J[102] = 0
-                J[114] = 0
-                J[126] = 0
-                J[138] = 0
-                J[7] = 0
-                J[19] = -fi2
-                J[31] = 0
-                J[43] = 0
-                J[55] = 0
-                J[67] = -f11
-                J[79] = b11+bi2+f12
-                J[91] = -b12
-                J[103] = 0
-                J[115] = 0
-                J[127] = 0
-                J[139] = 0
-                J[8] = 0
-                J[20] = 0
-                J[32] = -fi3
-                J[44] = 0
-                J[56] = 0
-                J[68] = 0
-                J[80] = -f12
-                J[92] = b12+bi3+f13
-                J[104] = -bi3
-                J[116] = 0
-                J[128] = 0
-                J[140] = 0
-                J[9] = 0
-                J[21] = 0
-                J[33] = 0
-                J[45] = -fi4
-                J[57] = 0
-                J[69] = 0
-                J[81] = 0
-                J[93] = -f13
-                J[105] = b13+bi4+f14
-                J[117] = -b14
-                J[129] = 0
-                J[141] = 0
-                J[10] = 0
-                J[22] = 0
-                J[34] = 0
-                J[46] = 0
-                J[58] = -fi5
-                J[70] = 0
-                J[82] = 0
-                J[94] = 0
-                J[106] = -f14
-                J[118] = b14+bi5+f1n
-                J[130] = -b1n
-                J[142] = 0
-                J[11] = -1
-                J[23] = -1
-                J[35] = -1
-                J[47] = -1
-                J[59] = -1
-                J[71] = -1
-                J[83] = -1
-                J[95] = -1
-                J[107] = -1
-                J[119] = -1
-                J[131] = -1
-                J[143] = -1
+                EIGEN_LINEAR_SOLVE{
+                }{
+                }{
+                    X[0] = C1
+                    X[1] = C2
+                    X[2] = C3
+                    X[3] = C4
+                    X[4] = C5
+                    X[5] = I1
+                    X[6] = I2
+                    X[7] = I3
+                    X[8] = I4
+                    X[9] = I5
+                    X[10] = I6
+                    X[11] = O
+                    F[0] = 0
+                    F[1] = 0
+                    F[2] = 0
+                    F[3] = 0
+                    F[4] = 0
+                    F[5] = 0
+                    F[6] = 0
+                    F[7] = 0
+                    F[8] = 0
+                    F[9] = 0
+                    F[10] = 0
+                    F[11] = -1
+                    J[0] = f01+fi1
+                    J[12] = -b01
+                    J[24] = 0
+                    J[36] = 0
+                    J[48] = 0
+                    J[60] = -bi1
+                    J[72] = 0
+                    J[84] = 0
+                    J[96] = 0
+                    J[108] = 0
+                    J[120] = 0
+                    J[132] = 0
+                    J[1] = -f01
+                    J[13] = b01+f02+fi2
+                    J[25] = -b02
+                    J[37] = 0
+                    J[49] = 0
+                    J[61] = 0
+                    J[73] = -bi2
+                    J[85] = 0
+                    J[97] = 0
+                    J[109] = 0
+                    J[121] = 0
+                    J[133] = 0
+                    J[2] = 0
+                    J[14] = -f02
+                    J[26] = b02+f03+fi3
+                    J[38] = -b03
+                    J[50] = 0
+                    J[62] = 0
+                    J[74] = 0
+                    J[86] = -bi3
+                    J[98] = 0
+                    J[110] = 0
+                    J[122] = 0
+                    J[134] = 0
+                    J[3] = 0
+                    J[15] = 0
+                    J[27] = -f03
+                    J[39] = b03+f04+fi4
+                    J[51] = -b04
+                    J[63] = 0
+                    J[75] = 0
+                    J[87] = 0
+                    J[99] = -bi4
+                    J[111] = 0
+                    J[123] = 0
+                    J[135] = 0
+                    J[4] = 0
+                    J[16] = 0
+                    J[28] = 0
+                    J[40] = -f04
+                    J[52] = b04+f0O+fi5
+                    J[64] = 0
+                    J[76] = 0
+                    J[88] = 0
+                    J[100] = 0
+                    J[112] = -bi5
+                    J[124] = 0
+                    J[136] = -b0O
+                    J[5] = 0
+                    J[17] = 0
+                    J[29] = 0
+                    J[41] = 0
+                    J[53] = -f0O
+                    J[65] = 0
+                    J[77] = 0
+                    J[89] = 0
+                    J[101] = 0
+                    J[113] = 0
+                    J[125] = -bin
+                    J[137] = b0O+fin
+                    J[6] = -fi1
+                    J[18] = 0
+                    J[30] = 0
+                    J[42] = 0
+                    J[54] = 0
+                    J[66] = bi1+f11
+                    J[78] = -b11
+                    J[90] = 0
+                    J[102] = 0
+                    J[114] = 0
+                    J[126] = 0
+                    J[138] = 0
+                    J[7] = 0
+                    J[19] = -fi2
+                    J[31] = 0
+                    J[43] = 0
+                    J[55] = 0
+                    J[67] = -f11
+                    J[79] = b11+bi2+f12
+                    J[91] = -b12
+                    J[103] = 0
+                    J[115] = 0
+                    J[127] = 0
+                    J[139] = 0
+                    J[8] = 0
+                    J[20] = 0
+                    J[32] = -fi3
+                    J[44] = 0
+                    J[56] = 0
+                    J[68] = 0
+                    J[80] = -f12
+                    J[92] = b12+bi3+f13
+                    J[104] = -bi3
+                    J[116] = 0
+                    J[128] = 0
+                    J[140] = 0
+                    J[9] = 0
+                    J[21] = 0
+                    J[33] = 0
+                    J[45] = -fi4
+                    J[57] = 0
+                    J[69] = 0
+                    J[81] = 0
+                    J[93] = -f13
+                    J[105] = b13+bi4+f14
+                    J[117] = -b14
+                    J[129] = 0
+                    J[141] = 0
+                    J[10] = 0
+                    J[22] = 0
+                    J[34] = 0
+                    J[46] = 0
+                    J[58] = -fi5
+                    J[70] = 0
+                    J[82] = 0
+                    J[94] = 0
+                    J[106] = -f14
+                    J[118] = b14+bi5+f1n
+                    J[130] = -b1n
+                    J[142] = 0
+                    J[11] = -1
+                    J[23] = -1
+                    J[35] = -1
+                    J[47] = -1
+                    J[59] = -1
+                    J[71] = -1
+                    J[83] = -1
+                    J[95] = -1
+                    J[107] = -1
+                    J[119] = -1
+                    J[131] = -1
+                    J[143] = -1
+                }{
+                    C1 = X[0]
+                    C2 = X[1]
+                    C3 = X[2]
+                    C4 = X[3]
+                    C5 = X[4]
+                    I1 = X[5]
+                    I2 = X[6]
+                    I3 = X[7]
+                    I4 = X[8]
+                    I5 = X[9]
+                    I6 = X[10]
+                    O = X[11]
+                }{
+                }
             })";
         THEN("return matrix system to be solved") {
             auto result = run_sympy_solver_visitor(nmodl_text, false, false,
@@ -4376,13 +4436,16 @@ SCENARIO("NONLINEAR solve block (SympySolver Visitor)", "[sympy][nonlinear]") {
             })";
         std::string expected_text = R"(
             NONLINEAR nonlin {
-                {
+                EIGEN_NEWTON_SOLVE{
+                }{
+                }{
                     X[0] = x
                 }{
                     F[0] = -X[0]+5
                     J[0] = -1
                 }{
                     x = X[0]
+                }{
                 }
             })";
         THEN("return F & J for newton solver") {
