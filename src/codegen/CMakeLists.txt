@@ -10,6 +10,8 @@ set(CODEGEN_SOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/codegen_omp_visitor.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/codegen_c_visitor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/codegen_c_visitor.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/codegen_kernkraft_visitor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/codegen_kernkraft_visitor.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/codegen_helper_visitor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/codegen_helper_visitor.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/codegen_info.cpp

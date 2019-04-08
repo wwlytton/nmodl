@@ -425,7 +425,7 @@ class CodegenCVisitor: public visitor::AstVisitor {
 
 
     /// get variable name for float variable
-    std::string float_variable_name(SymbolType& symbol, bool use_instance);
+    virtual std::string float_variable_name(SymbolType& symbol, bool use_instance);
 
 
     /// get variable name for int variable
