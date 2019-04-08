@@ -18,6 +18,7 @@
 #include "codegen/codegen_c_visitor.hpp"
 #include "codegen/codegen_cuda_visitor.hpp"
 #include "codegen/codegen_ispc_visitor.hpp"
+#include "codegen/codegen_kernkraft_visitor.hpp"
 #include "codegen/codegen_omp_visitor.hpp"
 #include "parser/nmodl_driver.hpp"
 #include "utils/common_utils.hpp"
@@ -65,6 +66,9 @@ int main(int argc, const char* argv[]) {
 
     /// true if ispc code to be generated
     bool ispc_backend(false);
+
+    /// true if kernkraft code to be generated
+    bool kkraft_backend(false);
 
     /// true if c code with openacc to be generated
     bool oacc_backend(false);
@@ -151,6 +155,7 @@ int main(int argc, const char* argv[]) {
     host_opt->add_flag("--c", c_backend, "C/C++ backend")->ignore_case();
     host_opt->add_flag("--omp", omp_backend, "C/C++ backend with OpenMP")->ignore_case();
     host_opt->add_flag("--ispc", ispc_backend, "C/C++ backend with ISPC")->ignore_case();
+    host_opt->add_flag("--kkraft", kkraft_backend, "C/C++ backend for KernKraft")->ignore_case();
 
     auto acc_opt = app.add_subcommand("acc", "Accelerator code backends")->ignore_case();
     acc_opt->add_flag("--oacc", oacc_backend, "C/C++ backend with OpenACC")->ignore_case();
@@ -364,6 +369,12 @@ int main(int argc, const char* argv[]) {
             if (ispc_backend) {
                 logger->info("Running ISPC backend code generator");
                 CodegenIspcVisitor visitor(modfile, output_dir, mem_layout, data_type);
+                visitor.visit_program(ast.get());
+            }
+
+            else if (kkraft_backend) {
+                logger->info("Running Kernkraft backend code generator");
+                CodegenKernkraft visitor(modfile, output_dir, mem_layout, data_type);
                 visitor.visit_program(ast.get());
             }
 
