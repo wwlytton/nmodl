@@ -30,6 +30,19 @@ class CodegenKernkraft: public CodegenCVisitor {
     /// entry point to code generation
     void print_codegen_routines() override;
 
+    /// structure that wraps all range and int variables required for mod file
+    void print_mechanism_range_var_structure() override;
+
+    /// nrn_state / state update function definition
+    void print_nrn_state() override;
+
+    /// backend specific block start for tiling on channel iteration
+    virtual void print_channel_iteration_tiling_block_begin(BlockType type) override;
+
+    /// backend specific channel instance iteration block start
+    virtual void print_channel_iteration_block_begin(BlockType type) override;
+
+
 
   public:
     CodegenKernkraft(std::string mod_file,

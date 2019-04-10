@@ -651,7 +651,7 @@ class CodegenCVisitor: public visitor::AstVisitor {
 
 
     /// structure that wraps all range and int variables required for mod file
-    void print_mechanism_range_var_structure();
+    virtual void print_mechanism_range_var_structure();
 
 
     /// structure of ion variables used for local copies
@@ -1005,7 +1005,7 @@ class CodegenCVisitor: public visitor::AstVisitor {
 
 
     /// nrn_state / state update function definition
-    void print_nrn_state();
+    virtual void print_nrn_state();
 
 
     /// nrn_cur / current update function definition
