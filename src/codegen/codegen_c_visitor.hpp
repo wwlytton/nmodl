@@ -481,7 +481,7 @@ class CodegenCVisitor: public visitor::AstVisitor {
 
 
     /// any statement block in nmodl with option to (not) print braces
-    void print_statement_block(ast::StatementBlock* node,
+    virtual void print_statement_block(ast::StatementBlock* node,
                                bool open_brace = true,
                                bool close_brace = true);
 
@@ -739,7 +739,7 @@ class CodegenCVisitor: public visitor::AstVisitor {
 
 
     /// call to internal or external function
-    void print_function_call(ast::FunctionCall* node);
+    virtual void print_function_call(ast::FunctionCall* node);
 
 
     /// net_send call

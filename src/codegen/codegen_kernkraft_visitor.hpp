@@ -23,9 +23,20 @@ class CodegenKernkraft: public CodegenCVisitor {
     std::string backend_name() override;
 
 
+    /// Also reimplement something to handle nt->dt similar to below
     std::string float_variable_name(SymbolType& symbol, bool use_instance) override;
 
+    /// any statement block in nmodl with option to (not) print braces
+    void print_statement_block(ast::StatementBlock* node,
+                                       bool open_brace = true,
+                                       bool close_brace = true) override;
+
+    /// call to internal or external function
+    void print_function_call(ast::FunctionCall* node) override;
+
     void print_global_function_common_code(BlockType type) override;
+
+    std::string get_variable_name(const std::string& name, bool use_instance = true) override;
 
     /// entry point to code generation
     void print_codegen_routines() override;
@@ -41,8 +52,6 @@ class CodegenKernkraft: public CodegenCVisitor {
 
     /// backend specific channel instance iteration block start
     virtual void print_channel_iteration_block_begin(BlockType type) override;
-
-
 
   public:
     CodegenKernkraft(std::string mod_file,
