@@ -47,6 +47,18 @@ class CodegenKernkraft: public CodegenCVisitor {
     /// nrn_state / state update function definition
     void print_nrn_state() override;
 
+    /// nrn_cur / current update function definition
+    void print_nrn_cur() override;
+
+    /// main body of nrn_cur function
+    void print_nrn_cur_kernel(ast::BreakpointBlock* node) override;
+
+    /// nrn_cur_kernel will use this kernel if conductance keywords are specified
+    void print_nrn_cur_conductance_kernel(ast::BreakpointBlock* node) override;
+
+    /// update to matrix elements with/without shadow vectors
+    void print_nrn_cur_matrix_shadow_update() override;
+
     /// backend specific block start for tiling on channel iteration
     virtual void print_channel_iteration_tiling_block_begin(BlockType type) override;
 

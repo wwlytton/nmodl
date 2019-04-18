@@ -880,11 +880,11 @@ class CodegenCVisitor: public visitor::AstVisitor {
 
 
     /// main body of nrn_cur function
-    void print_nrn_cur_kernel(ast::BreakpointBlock* node);
+    virtual void print_nrn_cur_kernel(ast::BreakpointBlock* node);
 
 
     /// nrn_cur_kernel will use this kernel if conductance keywords are specified
-    void print_nrn_cur_conductance_kernel(ast::BreakpointBlock* node);
+    virtual void print_nrn_cur_conductance_kernel(ast::BreakpointBlock* node);
 
 
     /// nrn_cur_kernel will use this kernel if no conductance keywords are specified
@@ -1009,7 +1009,7 @@ class CodegenCVisitor: public visitor::AstVisitor {
 
 
     /// nrn_cur / current update function definition
-    void print_nrn_cur();
+    virtual void print_nrn_cur();
 
 
     /// kernel for buffering net_receive events

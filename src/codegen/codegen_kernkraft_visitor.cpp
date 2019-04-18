@@ -111,7 +111,10 @@ void CodegenKernkraft::print_codegen_routines() {
     //print_data_structures();
     print_mechanism_range_var_structure();
     printer->add_line( "double voltage[N];");
- //   print_nrn_cur();
+    printer->add_line( "double node_area[N];");
+    printer->add_line( "double shadow_rhs[N];");
+    printer->add_line( "double shadow_d[N];");
+    print_nrn_cur();
     print_nrn_state();
     codegen = false;
 }
@@ -125,9 +128,14 @@ void CodegenKernkraft::print_mechanism_range_var_structure() {
     for (auto& var: codegen_float_variables) {
         auto name = var->get_name();
         auto type = get_range_var_float_type(var);
-        auto qualifier = is_constant_variable(name) ? k_const() : "";
         printer->add_line("{} {}[N];"_format(type, name));
     }
+//    if (channel_task_dependency_enabled()) {
+        for (auto& var: codegen_shadow_variables) {
+            auto name = var->get_name();
+            printer->add_line("{} {}[N];"_format(float_type, name));
+        }
+//    }
     // N.B. Kerncraft does not support integer arrays
 
     printer->add_newline();
@@ -137,6 +145,9 @@ void CodegenKernkraft::print_channel_iteration_tiling_block_begin(BlockType type
     // no tiling for cpu backend, just get loop bounds
     printer->add_line("double v;");
     printer->add_line("double dt;");
+    printer->add_line("double lg;");
+    printer->add_line("double rhs;");
+    printer->add_line("double mfactor;");
 }
 
 void CodegenKernkraft::print_channel_iteration_block_begin(BlockType type) {
@@ -155,7 +166,7 @@ void CodegenKernkraft::print_nrn_state() {
 
     print_channel_iteration_tiling_block_begin(BlockType::State);
     print_channel_iteration_block_begin(BlockType::State);
-    print_post_channel_iteration_common_code();ptr_type_qualifier(),
+    print_post_channel_iteration_common_code();
 
     printer->add_line("/*[KR INFO] elision of 1 indirect access: */");
     printer->add_line("/*[KR INFO] node_id = node_index[id]; */");
@@ -202,6 +213,145 @@ void CodegenKernkraft::print_nrn_state() {
     print_kernel_data_present_annotation_block_end();
 
     codegen = false;
+}
+
+void CodegenKernkraft::print_nrn_cur() {
+    if (!nrn_cur_required()) {
+        return;
+    }
+
+    codegen = true;
+    if (info.conductances.empty()) {
+        print_nrn_current(info.breakpoint_node);
+    }
+
+    printer->add_newline(2);
+    printer->add_line("/** update current */");
+    //print_global_function_common_code(BlockType::Equation);
+    print_channel_iteration_tiling_block_begin(BlockType::Equation);
+    print_channel_iteration_block_begin(BlockType::Equation);
+    print_post_channel_iteration_common_code();
+
+    print_nrn_cur_kernel(info.breakpoint_node);
+
+    print_nrn_cur_matrix_shadow_update();
+    print_channel_iteration_block_end();
+
+    /* MUST BE HANDLED AS A SEPARATE KERNEL
+    if (nrn_cur_reduction_loop_required()) {
+        print_shadow_reduction_block_begin();
+        print_nrn_cur_matrix_shadow_reduction();
+        print_shadow_reduction_statements();
+        print_shadow_reduction_block_end();
+    }
+     */
+
+    print_channel_iteration_tiling_block_end();
+    print_kernel_data_present_annotation_block_end();
+    //printer->end_block(1);
+    codegen = false;
+}
+
+void CodegenKernkraft::print_nrn_cur_kernel(ast::BreakpointBlock* node) {
+
+    printer->add_line("/*[KR INFO] elision of 1 indirect access: */");
+    printer->add_line("/*[KR INFO] node_id = node_index[id]; */");
+    printer->add_line("/*[KR INFO] v = voltage[node_id]; */");
+    printer->add_line("v = voltage[id];");
+
+    if (ion_variable_struct_required()) {
+        print_ion_variable();
+    }
+
+    auto read_statements = ion_read_statements(BlockType::Equation);
+    for (auto& statement: read_statements) {
+        printer->add_line(statement);
+    }
+
+    if (info.conductances.empty()) {
+        //print_nrn_cur_non_conductance_kernel(); //not supported by kernkraft
+    } else {
+        print_nrn_cur_conductance_kernel(node);
+    }
+
+    auto write_statements = ion_write_statements(BlockType::Equation);
+    for (auto& statement: write_statements) {
+        auto text = process_shadow_update_statement(statement, BlockType::Equation);
+        printer->add_line(text);
+    }
+
+    if (info.point_process) {
+        auto area = get_variable_name(naming::NODE_AREA_VARIABLE);
+        printer->add_line("/*[KR INFO] elision of 1 indirect access: */");
+        printer->add_text("/*[KR INFO] ");
+        printer->add_text("mfactor = 1.e2/{};"_format(area));
+        printer->add_text("*/");
+        printer->add_line("");
+        printer->add_line("mfactor = 1.e2/node_area[id];");
+        printer->add_line("lg = lg*mfactor;");
+        printer->add_line("rhs = rhs*mfactor;");
+    }
+}
+
+void CodegenKernkraft::print_nrn_cur_conductance_kernel(ast::BreakpointBlock* node) {
+
+    auto block = node->get_statement_block();
+    print_statement_block(block.get(), false, false);
+
+    if (!info.currents.empty()) {
+        std::string sum;
+        for (const auto& current: info.currents) {
+            auto var = breakpoint_current(current);
+            sum += get_variable_name(var);
+            if (&current != &info.currents.back()) {
+                sum += "+";
+            }
+        }
+        printer->add_line("rhs = {};"_format(sum));
+    }
+
+    if (!info.conductances.empty()) {
+        std::string sum;
+        for (const auto& conductance: info.conductances) {
+            auto var = breakpoint_current(conductance.variable);
+            sum += get_variable_name(var);
+            if (&conductance != &info.conductances.back()) {
+                sum += "+";
+            }
+        }
+        printer->add_line("lg = {};"_format(sum));
+    }
+
+    for (const auto& conductance: info.conductances) {
+        if (!conductance.ion.empty()) {
+            auto lhs = "ion_di" + conductance.ion + "dv";
+            auto rhs = get_variable_name(conductance.variable);
+            auto statement = ShadowUseStatement{lhs, "+=", rhs};
+            auto text = process_shadow_update_statement(statement, BlockType::Equation);
+            printer->add_line(text);
+        }
+    }
+}
+
+void CodegenKernkraft::print_nrn_cur_matrix_shadow_update() {
+    if (channel_task_dependency_enabled()) {
+        auto rhs = get_variable_name("ml_rhs");
+        auto d = get_variable_name("ml_d");
+        printer->add_line("{} = rhs;"_format(rhs));
+        printer->add_line("{} = lg;"_format(d));
+    } else {
+        if (info.point_process) {
+            printer->add_line("shadow_rhs[id] = rhs;");
+            printer->add_line("shadow_d[id] = lg;");
+        } else {
+            auto rhs_op = operator_for_rhs();
+            auto d_op = operator_for_d();
+            print_atomic_reduction_pragma();
+            printer->add_line("vec_rhs[node_id] {} rhs;"_format(rhs_op));
+            print_atomic_reduction_pragma();
+            printer->add_line("vec_d[node_id] {} lg;"_format(d_op));
+        }
+    }
 }
 
 }  // namespace codegen
