@@ -1,0 +1,28 @@
+
+
+/** all mechanism instance variables */
+const double __restrict__ tau[N];
+const double __restrict__ e[N];
+double __restrict__ i[N];
+double __restrict__ g[N];
+double __restrict__ Dg[N];
+double __restrict__ v_unused[N];
+double __restrict__ g_unused[N];
+double __restrict__ tsave[N];
+
+double voltage[N]
+
+
+/** update state */
+int start = 0;
+int end = nodecount;
+int id;
+double v;
+#pragma ivdep
+for (id = start; id < end; id++)  {
+    /*[INFO] elision of 1 indirect access: */
+    /*[INFO] node_id = node_index[id]; */
+    /*[INFO] v = voltage[node_id]; */
+    v = voltage[id];
+    g = g + (1.0 - exp(dt * (( -1.0) / tau))) * ( -(0.0) / (( -1.0) / tau) - g);
+}
