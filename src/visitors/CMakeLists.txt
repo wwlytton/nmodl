@@ -38,6 +38,8 @@ set(VISITOR_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/verbatim_var_rename_visitor.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/verbatim_visitor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/verbatim_visitor.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/expression_converter_visitor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/expression_converter_visitor.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/visitor_utils.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/visitor_utils.hpp)
 
