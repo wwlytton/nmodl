@@ -379,7 +379,7 @@ class CodegenCVisitor: public visitor::AstVisitor {
 
 
     /// check if give statement should be skipped during code generation
-    bool statement_to_skip(ast::Statement* node);
+    virtual bool statement_to_skip(ast::Statement* node);
 
 
     /// check if semicolon required at the end of given statement
@@ -409,7 +409,7 @@ class CodegenCVisitor: public visitor::AstVisitor {
 
 
     /// when ion variable copies optimized then change name (e.g. ena to ion_ena)
-    std::string update_if_ion_variable_name(const std::string& name);
+    virtual std::string update_if_ion_variable_name(const std::string& name);
 
 
     /// name of the code generation backend
@@ -429,17 +429,17 @@ class CodegenCVisitor: public visitor::AstVisitor {
 
 
     /// get variable name for int variable
-    std::string int_variable_name(IndexVariableInfo& symbol,
+    virtual std::string int_variable_name(IndexVariableInfo& symbol,
                                   const std::string& name,
                                   bool use_instance);
 
 
     /// get variable name for global variable
-    std::string global_variable_name(SymbolType& symbol);
+    virtual std::string global_variable_name(SymbolType& symbol);
 
 
     /// get ion shadow variable name
-    std::string ion_shadow_variable_name(SymbolType& symbol);
+    virtual std::string ion_shadow_variable_name(SymbolType& symbol);
 
 
     /// get variable name for given name. if use_instance is true then "Instance"
@@ -631,7 +631,7 @@ class CodegenCVisitor: public visitor::AstVisitor {
 
 
     /// ion variable copies are avoided
-    bool optimize_ion_variable_copies();
+    virtual bool optimize_ion_variable_copies();
 
 
     /// if reduction block in nrn_cur required

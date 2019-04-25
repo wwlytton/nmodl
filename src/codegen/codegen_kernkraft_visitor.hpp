@@ -26,6 +26,17 @@ class CodegenKernkraft: public CodegenCVisitor {
     /// Also reimplement something to handle nt->dt similar to below
     std::string float_variable_name(SymbolType& symbol, bool use_instance) override;
 
+    /// get variable name for global variable
+    std::string global_variable_name(SymbolType& symbol)override ;
+
+    /// get ion shadow variable name
+    std::string ion_shadow_variable_name(SymbolType& symbol) override;
+
+    /// get variable name for int variable
+    std::string int_variable_name(IndexVariableInfo& symbol,
+                                          const std::string& name,
+                                          bool use_instance) override;
+
     /// any statement block in nmodl with option to (not) print braces
     void print_statement_block(ast::StatementBlock* node,
                                        bool open_brace = true,
@@ -35,6 +46,9 @@ class CodegenKernkraft: public CodegenCVisitor {
     void print_function_call(ast::FunctionCall* node) override;
 
     void print_global_function_common_code(BlockType type) override;
+
+    /// helper function to find unique variable names and print them in a single declaration statement
+    void print_unique_local_variables(ast::StatementVector statements);
 
     std::string get_variable_name(const std::string& name, bool use_instance = true) override;
 
@@ -65,6 +79,12 @@ class CodegenKernkraft: public CodegenCVisitor {
     /// backend specific channel instance iteration block start
     virtual void print_channel_iteration_block_begin(BlockType type) override;
 
+    /// ion variable copies are avoided
+    bool optimize_ion_variable_copies() override;
+
+    /// check if give statement should be skipped during code generation
+    bool statement_to_skip(ast::Statement* node) override;
+
   public:
     CodegenKernkraft(std::string mod_file,
                      std::string output_dir,
@@ -77,6 +97,13 @@ class CodegenKernkraft: public CodegenCVisitor {
                      LayoutType layout,
                      std::string float_type)
         : CodegenCVisitor(mod_file, stream, layout, float_type) {}
+
+    void visit_binary_expression(ast::BinaryExpression* node) override;
+    void visit_if_statement(ast::IfStatement* node) override;
+    void visit_else_if_statement(ast::ElseIfStatement* node) override;
+    void visit_else_statement(ast::ElseStatement* node) override;
+
+
 };
 
 }  // namespace codegen
