@@ -501,11 +501,10 @@ void CodegenKernkraft::print_nrn_cur_kernel(ast::BreakpointBlock* node) {
 
     if (info.point_process) {
         auto area = get_variable_name(naming::NODE_AREA_VARIABLE);
-        printer->add_line("/*[KR INFO] elision of 1 indirect access: */");
-        printer->add_text("/*[KR INFO] ");
-        printer->add_text("mfactor = 1.e2/{};"_format(area));
-        printer->add_text("*/");
-        printer->add_line("");
+        //printer->add_line("/*[KR INFO] elision of 1 indirect access: */");
+        //printer->add_text("/*[KR INFO] ");
+        //printer->add_text("mfactor = 1.e2/{};"_format(area));
+        //printer->add_line("*/");
         printer->add_line("mfactor = 1.e2/node_area[id];");
         printer->add_line("lg = lg*mfactor;");
         printer->add_line("rhs = rhs*mfactor;");

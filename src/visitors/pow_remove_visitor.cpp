@@ -120,7 +120,17 @@ void PowRemoveVisitor::visit_binary_expression(BinaryExpression *node){
         local_prepend_statements.push_back(statement);
 
         /// insert local_prepend_statements into prepend_statements for later use
-        prepend_statements[caller_statement] = local_prepend_statements;
+        /// Below check is necessary to handle the case where multiple power
+        /// function calls were in the same statement.
+        if (prepend_statements.find(caller_statement) == prepend_statements.end()) {
+            // this is the first time
+            prepend_statements[caller_statement] = local_prepend_statements;
+        } else {
+            // there was already something, we must now overwrite it!
+            prepend_statements[caller_statement].insert(prepend_statements[caller_statement].end(),
+                                                        local_prepend_statements.begin(),
+                                                        local_prepend_statements.end());
+        }
         replaced_pow_expr[node] = newvarid->get_node_name();
 
 
@@ -195,7 +205,15 @@ void PowRemoveVisitor::visit_function_call(FunctionCall *node){
         local_prepend_statements.push_back(statement);
 
         /// insert local_prepend_statements into prepend_statements for later use
-        prepend_statements[caller_statement] = local_prepend_statements;
+        if (prepend_statements.find(caller_statement) == prepend_statements.end()) {
+            // this is the first time
+            prepend_statements[caller_statement] = local_prepend_statements;
+        } else {
+            // there was already something, we must now overwrite it!
+            prepend_statements[caller_statement].insert(prepend_statements[caller_statement].end(),
+                                                        local_prepend_statements.begin(),
+                                                        local_prepend_statements.end());
+        }
         replaced_pow_expr[node] = newvarid->get_node_name();
 
     } else {
