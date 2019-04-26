@@ -14,6 +14,7 @@ using namespace fmt::literals;
 namespace nmodl {
 namespace codegen {
 
+    using namespace visitor;
 
 /****************************************************************************************/
 /*                      Routines must be overloaded in backend                          */
@@ -246,7 +247,7 @@ std::string CodegenKernkraft::get_variable_name(const std::string& name, bool us
 void CodegenKernkraft::print_unique_local_variables(ast::StatementVector statements) {
     // declare a set to hold local variables
     struct compare_var_names {
-        bool operator()( std::shared_ptr<ast::AST> x, std::shared_ptr<ast::AST> y){
+        bool operator()( std::shared_ptr<ast::Ast> x, std::shared_ptr<ast::Ast> y){
             return x->get_node_name() < y->get_node_name();
         }
     };

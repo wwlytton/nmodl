@@ -20,7 +20,7 @@
 
 namespace nmodl {
 
-    class ExpressionConverter: public AstVisitor {
+    class ExpressionConverter : public visitor::AstVisitor {
     private:
         /// map to track replaced pow calls
         std::map<ast::BinaryExpression*, ast::FunctionCall*> replaced_pow_expr;

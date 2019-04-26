@@ -20,7 +20,7 @@
 
 namespace nmodl {
 
-    class PowRemoveVisitor: public AstVisitor {
+    class PowRemoveVisitor: public visitor::AstVisitor {
     private:
         /// statement block containing current call to pow
         ast::StatementBlock* caller_block = nullptr;

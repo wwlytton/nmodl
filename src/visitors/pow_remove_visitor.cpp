@@ -10,6 +10,7 @@
 
 namespace nmodl {
     using namespace ast;
+    using namespace visitor;
 
 
 void PowRemoveVisitor::visit_statement_block(StatementBlock *node) {
