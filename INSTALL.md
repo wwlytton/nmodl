@@ -1,4 +1,4 @@
-# Installing the NMODL Framework
+# Installation
 
 ## Getting Started
 

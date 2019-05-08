@@ -1,8 +1,5 @@
-The NMODL Jupyter notebooks
-===========================
-
-About the notebooks
--------------------
+About Notebooks
+===============
 
 To help you get started we have created several `Jupyter notebooks <https://jupyter.org/>`_, which cover many aspects of using NMODL from Python
 beginning from basic model parsing and AST visualization, continuing with using and writing your own AST visitors, and

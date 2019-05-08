@@ -118,6 +118,7 @@ todo_include_todos = False
 # a list of builtin themes.
 #
 html_theme = "sphinx_rtd_theme"
+html_theme = "sphinx-limestone-theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -128,11 +129,11 @@ html_theme = "sphinx_rtd_theme"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-#html_static_path = ["_static"]
+html_static_path = ["_static"]
 
-# A list of paths that contain extra files not directly related to the 
-# documentation, such as robots.txt or .htaccess. Relative paths are taken 
-# as relative to the configuration directory. They are copied to the output 
+# A list of paths that contain extra files not directly related to the
+# documentation, such as robots.txt or .htaccess. Relative paths are taken
+# as relative to the configuration directory. They are copied to the output
 # directory. They will overwrite any existing file of the same name.
 html_extra_path = ["sphinx_doxygen"]
 

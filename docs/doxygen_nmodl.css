@@ -77,6 +77,10 @@ h3 {
     font-size: 100%;
 }
 
+.contents img.inline {
+    max-width: 100%;
+}
+
 /*
 body {
     max-width: 1440px;
