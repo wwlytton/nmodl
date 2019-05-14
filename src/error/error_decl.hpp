@@ -7,30 +7,34 @@
 
 #pragma once
 
+#include <set>
+
+#include "src/codegen/codegen_naming.hpp"
+
 namespace nmodl {
 namespace error {
 
 enum ErrorCases {
-    IncompatibleSolver, IncompatibleBlock, IncompatibleBlockName, GlobalVar, PointerVar, Bbcore_readwrite
+    IncompatibleSolver, IncompatibleBlockName, IncompatibleBlock, GlobalVar, PointerVar, Bbcore_read, Bbcore_write
 };
 
 /// Array of all the ast::AstNodeType that are unhandled
 /// by the NMODL \c C++ code generator
-std::vector <ast::AstNodeType> unhandled_ast_types = {AstNodeType::SOLVE_BLOCK,
-                                                      AstNodeType::TERMINAL_BLOCK,
-                                                      AstNodeType::PARTIAL_BLOCK,
-                                                      AstNodeType::MATCH_BLOCK,
-                                                      AstNodeType::BEFORE_BLOCK,
-                                                      AstNodeType::AFTER_BLOCK,
-                                                      AstNodeType::CONSTANT_BLOCK,
-                                                      AstNodeType::CONSTRUCTOR_BLOCK,
-                                                      AstNodeType::DESTRUCTOR_BLOCK,
-                                                      AstNodeType::DISCRETE_BLOCK,
-                                                      AstNodeType::FUNCTION_TABLE_BLOCK,
-                                                      AstNodeType::INDEPENDENT_BLOCK,
-                                                      AstNodeType::GLOBAL_VAR,
-                                                      AstNodeType::POINTER_VAR,
-                                                      AstNodeType::BBCORE_POINTER_VAR};
+std::vector <ast::AstNodeType> unhandled_ast_types = {ast::AstNodeType::SOLVE_BLOCK,
+                                                      ast::AstNodeType::TERMINAL_BLOCK,
+                                                      ast::AstNodeType::PARTIAL_BLOCK,
+                                                      ast::AstNodeType::MATCH_BLOCK,
+                                                      ast::AstNodeType::BEFORE_BLOCK,
+                                                      ast::AstNodeType::AFTER_BLOCK,
+                                                      ast::AstNodeType::CONSTANT_BLOCK,
+                                                      ast::AstNodeType::CONSTRUCTOR_BLOCK,
+                                                      ast::AstNodeType::DESTRUCTOR_BLOCK,
+                                                      ast::AstNodeType::DISCRETE_BLOCK,
+                                                      ast::AstNodeType::FUNCTION_TABLE_BLOCK,
+                                                      ast::AstNodeType::INDEPENDENT_BLOCK,
+                                                      ast::AstNodeType::GLOBAL_VAR,
+                                                      ast::AstNodeType::POINTER_VAR,
+                                                      ast::AstNodeType::BBCORE_POINTER_VAR};
 
 /// Set of handled solvers by the NMODL \c C++ code generator
 const std::set <std::string> handled_solvers{codegen::naming::CNEXP_METHOD,
