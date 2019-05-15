@@ -21,6 +21,7 @@
 #include "codegen/codegen_ispc_visitor.hpp"
 #include "codegen/codegen_omp_visitor.hpp"
 #include "config/config.h"
+#include "error/error.hpp"
 #include "parser/nmodl_driver.hpp"
 #include "parser/unit_driver.hpp"
 #include "utils/common_utils.hpp"
@@ -265,6 +266,10 @@ int main(int argc, const char* argv[]) {
         }
 
         {
+            error::UnhandledAstNodes error_handler;
+            std::cout << error_handler.error_checking(ast.get()) << std::endl;
+            error_handler.print_errors();
+
             // Compatibility Checking
             logger->info("Running code compatibility checker");
             // If there is an incompatible construct and code generation is not forced exit NMODL

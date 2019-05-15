@@ -141,6 +141,7 @@ set(AUTO_GENERATED_FILES
     ${PROJECT_BINARY_DIR}/src/visitors/nmodl_visitor.cpp)
 
 add_subdirectory(src/codegen)
+add_subdirectory(src/error)
 add_subdirectory(src/language)
 add_subdirectory(src/lexer)
 add_subdirectory(src/nmodl)
