@@ -48,20 +48,34 @@ class ErrorHandler {
     std::vector<Error> errors;
 
   public:
+    void add_error(Error error) {
+        errors.push_back(error);
+    }
+    std::vector<Error> get_errors() {
+        return errors;
+    }
+    virtual bool error_checking() = 0;
     virtual void print_errors() = 0;
 };
-// if user wants to define new error:
+// if someone wants to define new error:
 // 1. add case to ErrorCases
 // 2. add string to std::map<ErrorCases, std::string>
-// 3. create visitor to handle the error or add case to switch of lookupvisitor
+// 3. create relevant class for this type of errors
+// 4. add print_errors which is needed to print some kind of error
+// 5. add error_checking that takes care of handling the error
 
-class UnhandledAstNodes
-    : public ErrorHandler {  // should be derived by ErrorVisitor and called Unhandled visitor
+// ErrorHandler can be added to every class and if there is an error in this class
+// add it to the errors vector and then print the vector in the end
+// or
+// there can be defined a new error handler that takes care of traversing the AST
+// and print errors if there are any
 
+class UnhandledAstNodes: public ErrorHandler {
     const std::string CODE_INCOMPATIBILITY = "Code Incompatibility :: ";
 
-    std::vector<Error> errors;
-    // visit_solve_blocks();   // create Error and add it to the error vector
+    ast::Ast* ast_tree;
+
+    // functions that handle errors of this type and add them to the errors vector
     void unhandled_solve_method(const std::shared_ptr<ast::Ast>& ast_node);
 
     template <typename T>
@@ -76,25 +90,15 @@ class UnhandledAstNodes
 
     void no_bbcore_readwrite(Ast* node);
 
-    // visit_discrete_block();
-    //.
-    //.
-    //.
-    // visit_global_var();
-    // visit_pointer_var();
-    // visit_bbcore_pointer_var();
-    // instead of different visitors, I can use the same lookup that takes unhandled_ast_types from
-    // error_decl.hpp
-
   public:
-    bool error_checking(ast::Ast* ast);  // run all visitors (check if there is any way to simply
-                                         // run all the defined private visitors) also prints error
-                                         // in the end returns true or false based on error.empty()
-    // bool visit_unhandled_nodes(ast::Ast* ast, std::string);
-    // bool visit_unhandled_nodes(ast::Ast* ast, stream);
+    explicit UnhandledAstNodes(ast::Ast* node)
+        : ast_tree(node) {}
+
+    bool error_checking() override;  // basic function which runs all for checking some error in AST
+                                     // in the end returns true or false based on error.empty()
+
     void print_errors() override;  // based on the error_case print the message and the related
                                    // members of Error
-    // print_errors(std::string prefix);   // print_errors with some prefix in the beggining
 };
 
 }  // namespace error

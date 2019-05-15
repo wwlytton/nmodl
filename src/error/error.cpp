@@ -66,7 +66,7 @@ void UnhandledAstNodes::unhandled_solve_method(const std::shared_ptr<ast::Ast>& 
     if (unhandled_solver_method) {
         auto unhandled_solve_method_error =
             Error(IncompatibleSolver, ast_node, method->get_node_name(), *method->get_token());
-        errors.push_back(unhandled_solve_method_error);
+        add_error(unhandled_solve_method_error);
     }
 }
 
@@ -77,7 +77,7 @@ void UnhandledAstNodes::unhandled_construct_with_name(const std::shared_ptr<ast:
                                                      ast_node,
                                                      real_type_block->get_node_name(),
                                                      *real_type_block->get_token());
-    errors.push_back(unhandled_construct_with_name_error);
+    add_error(unhandled_construct_with_name_error);
 }
 
 template <typename T>
@@ -86,7 +86,7 @@ void UnhandledAstNodes::unhandled_construct_without_name(
     auto real_type_block = std::dynamic_pointer_cast<T>(ast_node);
     auto unhandled_construct_without_name_error =
         Error(IncompatibleBlock, ast_node, *real_type_block->get_token());
-    errors.push_back(unhandled_construct_without_name_error);
+    add_error(unhandled_construct_without_name_error);
 }
 
 void UnhandledAstNodes::global_var_to_range(Ast* node, const std::shared_ptr<ast::Ast>& ast_node) {
@@ -94,7 +94,7 @@ void UnhandledAstNodes::global_var_to_range(Ast* node, const std::shared_ptr<ast
     if (node->get_symbol_table()->lookup(global_var->get_node_name())->get_write_count() > 0) {
         auto global_var_to_range_error =
             Error(GlobalVar, ast_node, global_var->get_node_name(), *global_var->get_token());
-        errors.push_back(global_var_to_range_error);
+        add_error(global_var_to_range_error);
     }
 }
 
@@ -102,7 +102,7 @@ void UnhandledAstNodes::pointer_to_bbcorepointer(const std::shared_ptr<ast::Ast>
     auto pointer_var = std::dynamic_pointer_cast<ast::PointerVar>(ast_node);
     auto pointer_to_bbcorepointer_error =
         Error(PointerVar, ast_node, pointer_var->get_node_name(), *pointer_var->get_token());
-    errors.push_back(pointer_to_bbcorepointer_error);
+    add_error(pointer_to_bbcorepointer_error);
 }
 
 void UnhandledAstNodes::no_bbcore_readwrite(Ast* node) {
@@ -134,16 +134,17 @@ void UnhandledAstNodes::no_bbcore_readwrite(Ast* node) {
     }
     if (!found_bbcore_read) {
         auto bbcore_read_error = Error(Bbcore_read);
-        errors.push_back(bbcore_read_error);
+        add_error(bbcore_read_error);
     }
     if (!found_bbcore_write) {
         auto bbcore_write_error = Error(Bbcore_write);
-        errors.push_back(bbcore_write_error);
+        add_error(bbcore_write_error);
     }
 }
 
 
-bool UnhandledAstNodes::error_checking(ast::Ast* node) {
+bool UnhandledAstNodes::error_checking() {
+    auto node = ast_tree;
     std::vector<std::shared_ptr<ast::Ast>> unhandled_ast_nodes =
         AstLookupVisitor().lookup(node, unhandled_ast_types);
     for (const auto& ast_node: unhandled_ast_nodes) {
@@ -193,11 +194,11 @@ bool UnhandledAstNodes::error_checking(ast::Ast* node) {
             break;
         }
     }
-    return !errors.empty();
+    return !get_errors().empty();
 }
 
 void UnhandledAstNodes::print_errors() {
-    for (const auto& error: errors) {
+    for (const auto& error: get_errors()) {
         switch (error.error_case) {
         case IncompatibleSolver: {
             std::string error_message = error_messages[error.error_case];

@@ -266,8 +266,8 @@ int main(int argc, const char* argv[]) {
         }
 
         {
-            error::UnhandledAstNodes error_handler;
-            std::cout << error_handler.error_checking(ast.get()) << std::endl;
+            error::UnhandledAstNodes error_handler(ast.get());
+            std::cout << error_handler.error_checking() << std::endl;
             error_handler.print_errors();
 
             // Compatibility Checking
